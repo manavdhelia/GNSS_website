@@ -1,0 +1,1630 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="blue">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.debug.js"></script>
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.0/chartjs-plugin-zoom.min.js" integrity="sha512-B6F98QATBNaDHSE7uANGo5h0mU6fhKCUD+SPAY7KZDxE8QgZw9rewDtNiu3mbbutYDWOKT3SPYD8qDBpG2QnEg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>GNSS log analyzer</title>
+
+    <style  type="text/css">
+html,
+body {
+  height: 100%;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #F0F0F0;
+  color: #232323;
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 2000;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.logo img {
+  height: 40px;
+  width: 165px;
+  filter: invert(1);
+
+}
+
+.heading {
+  margin: 0;
+  font-size: 24px;
+  //font-weight: bold;
+  letter-spacing: -0.5px;
+  //color: #e5322d;
+}
+
+.main{
+    height: 100%;
+    width: 100%;
+    margin-top: 60px;
+    overflow: hidden;
+    text-align: center;
+    height: 100%;
+    padding: 24px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -ms-flex: 1 1;
+    flex: 1 1;
+    background-color: #f3f0ec;
+    //overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+
+
+
+.tool__header {
+    padding: 6px 24px 30px;
+}
+
+.tool__header__title {
+    font-size: 42px;
+    letter-spacing: 0;
+    font-weight: 600;
+    color: #383e45;
+    margin-bottom: 8px;
+    line-height: 46px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.tool__header__subtitle {
+    max-width: 800px;
+    font-size: 22px;
+    font-weight: 400;
+    color: #383e45;
+    letter-spacing: 0;
+    margin: 0 auto 8px;
+    line-height: 32px;
+}
+
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-section label {
+display: inline-flex;
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    min-height: 80px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    background: #e5322d;
+    padding: 24px 56px;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 32px;
+    vertical-align: middle;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 12px;
+    -webkit-transition: all .1s linear;
+    -o-transition: all .1s linear;
+    transition: all .1s linear;
+    border-radius: 8px;
+    -webkit-box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+    box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+    -ms-flex-order: 1;
+    order: 1;
+    max-width: 60vw;
+    cursor: pointer;
+}
+
+#dropdowns{
+display: none;
+}
+
+#file{
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+#success-message {
+display: none;
+color: green;
+font-weight: bold;
+margin-top: 10px;
+}
+
+#dropdowns{
+height: 100%;
+  width: 370px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  padding-top: 60px;
+  background-color: #fff;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+#dropdowns select, #dropdowns button {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#dropdowns label {
+  color: #fff;
+  display: block;
+  margin-bottom: 5px;
+}
+
+#submit {
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    min-height: 80px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    background: #e5322d;
+    padding: 24px 56px;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 32px;
+    vertical-align: middle;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 12px;
+    -webkit-transition: all .1s linear;
+    -o-transition: all .1s linear;
+    transition: all .1s linear;
+    border-radius: 8px;
+    -webkit-box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+    box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+    -ms-flex-order: 1;
+    order: 1;
+    //max-width: 60vw;
+}
+
+
+#processTaskWrapper {
+    z-index: 1031;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    background: rgba(0,0,0,0);
+    min-height: 56px;
+    font-size: 28px;
+    line-height: 28px;
+    font-weight: 600;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 392px;
+    margin: 0;
+    z-index: 1030;
+    display: none;
+    -webkit-box-shadow: 0 2px 8px 0 rgb(50 50 50 / 30%);
+    box-shadow: 0 2px 8px 0 rgb(50 50 50 / 30%);
+    -webkit-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+
+#submit:disabled {
+    background: #e5e5e9;
+}
+
+.option__panel {
+    display: block;
+    //position: absolute;
+    left: 100%;
+    z-index: 0;
+    width: 100%;
+    -webkit-transition: all .4s ease-out;
+    -o-transition: all .4s ease-out;
+    transition: all .4s ease-out;
+    padding-bottom: 120px;
+}
+
+.option__panel__title {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 34px;
+    letter-spacing: 0;
+    color: #383e45;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 21px;
+    border-bottom: 1px solid rgba(0,0,0,.2);
+    //position: relative;
+    background-color: #fff;
+}
+
+.closebtn {
+right:0;
+top:0;
+}
+
+.closebtn svg {
+
+}
+
+
+.option__panel__content {
+    padding: 16px 24px;
+    margin-bottom: 16px;
+    border: 0;
+    border-radius: 4px
+    text-align: left;
+    background-position: 12px;
+    background-repeat: no-repeat;
+    padding: 24px;
+    color: #383e45;
+    //background-color: #d9edf7;
+    //border: solid #004083;
+    //border-width: 1px 1px 3px;
+    color: #383e45
+}
+
+.submit_button{
+padding: 12px 20px;
+}
+
+#dropdowns a {
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  transition: 0.3s;
+}
+
+#dropdowns a:hover{
+  color: #e5322d;
+}
+
+#hamburger_icon{
+ position: fixed;
+ top: 0;
+  right: 0;
+  margin: 3rem;
+  font-size: 30px;
+  cursor: pointer;
+  //display: block;
+  //z-index: 9999;
+}
+
+#hamburger_icon svg {
+  transition: all 0.3s ease;
+  width: 20px;
+}
+
+#chart-container{
+display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
+  grid-gap: 20px;
+  display: inline-block;
+  vertical-align: top;
+  width: 70%;
+  top:0;
+}
+
+@media (max-width: 800px){
+#chart-container{
+  width: 100%;
+}
+}
+
+#chart-container canvas{
+margin:50px;
+}
+
+#features {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 20px;
+}
+
+#features button {
+  margin-left: 10px;
+  padding: 7px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  outline: none;
+}
+
+#features label{
+display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+    cursor: pointer;
+}
+
+.loader {
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #3498db;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#chart-display {
+  margin: 20px;
+  padding: 10px;
+}
+
+.export_CSV_button, .export_pdf_button {
+padding: 12px 20px;
+}
+
+
+#export:disabled {
+    background: #e5e5e9;
+}
+
+#export, #export-pdf{
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    min-height: 80px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    //background: #e5322d;
+    padding: 24px 56px;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 32px;
+    vertical-align: middle;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 12px;
+    -webkit-transition: all .1s linear;
+    -o-transition: all .1s linear;
+    transition: all .1s linear;
+    border-radius: 8px;
+    -webkit-box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+    box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+    -ms-flex-order: 1;
+    order: 1;
+    //max-width: 60vw;
+}
+
+/*.export_CSV_button span svg{
+transform: rotate(90deg);
+}*/
+
+
+#export-pdf{
+   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  max-width: 400px;
+  height: 60px;
+  //background: #e5322d;
+  padding: 0 24px;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.2;
+  text-align: center;
+  color: #fff;
+  text-decoration: none;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 3px 6px 0 rgb(0 0 0 / 14%);
+  transition: all .1s linear;
+}
+
+.text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 50px auto;
+  width: 50%;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+label {
+  margin-bottom: 10px;
+}
+
+input[type="text"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.ordevice {
+  text-align: center;
+  margin: 20px 0;
+  font-weight: bold;
+}
+.notification {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px;
+  z-index: 9999;
+  display: none;
+  border-radius: 10px; /* add a border-radius */
+  border: 1px solid #333; / add a border /
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for the submit button */
+#submit-button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.advanced-search {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  margin-top: 10px;
+}
+
+.advanced-search-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  width: 100%;
+  text-align: left;
+}
+
+.advanced-search-dropdown {
+  display: none;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.category {
+  display: block;
+  margin-bottom: 5px;
+}
+
+#advanced_category {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+#advanced-search-textbox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#range-label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+#textbox1, #textbox2 {
+  width: 45%;
+  padding: 5px;
+  font-size: 14px;
+}
+
+ .chartjs-toolbar .custom-reload {
+    display: block !important;
+  }
+    </style>
+    <script>
+var decodedContents;
+var jsonResponse;
+var fileData;
+var max=32;
+var min=0;
+
+        function fileUploaded() {
+        // Get the file input element
+        var inputFile = document.getElementById('file');
+        const uploadSuccess = document.getElementById('upload-success');
+
+
+        // Check if a file has been selected
+        if (inputFile.files.length > 0) {
+            // Show the dropdowns and button
+                uploadSuccess.style.display = 'block'; // Display the notification message
+                setTimeout(function() {
+              uploadSuccess.style.display = 'none'; // Hide the notification message after 2 seconds
+            }, 2000);
+            document.getElementById('dropdowns').style.display = 'block';
+            document.getElementById('container').style.display = 'none';
+           document.getElementById('hamburger_icon').style.display = 'none';
+           document.getElementById('features').style.display = 'block';
+
+        } else {
+        if (navigator.onLine) {
+          var text = document.getElementById("myTextbox").value;
+			//document.getElementById("myTextbox").value="";
+		     //var ipRegex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
+               xhr.open("POST", "/ping/", true);
+              xhr.setRequestHeader("Content-Type", "application/json");
+              xhr.setRequestHeader("X-CSRFToken", csrfToken);
+              xhr.send(JSON.stringify({'text': text}));
+              xhr.onreadystatechange = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status === 200) {
+        var jsonResponse = JSON.parse(xhr.responseText);
+        if (jsonResponse.status === 'pingerror') {
+            alert("Not able to ping router");
+            location.reload();
+            }
+        else if(jsonResponse.status === 'vpnerror'){
+        alert("Please connect to VPN")
+        location.reload();
+        }
+        else if(jsonResponse.status === 'fileNotfound'){
+        alert("Not able to locate file. Please try offline method")
+        location.reload();
+        }
+        else{
+        console.log(jsonResponse);
+        decodedContents = atob(jsonResponse.encoded_data);
+
+            var blob = new Blob([decodedContents], {type: 'application/octet-stream'});
+            // Get the file input element
+            var inputFile = document.getElementById('file');
+
+            // Set the Blob object as the value of the file input element
+            inputFile.files[0] = new File([blob], 'gnss_receiver.log', {type: 'application/octet-stream'});
+
+            // Trigger the file upload event
+            //var event = new Event('change', {bubbles: true});
+            //inputFile.dispatchEvent(event);
+            uploadSuccess.style.display = 'block'; // Display the notification message
+                setTimeout(function() {
+              uploadSuccess.style.display = 'none'; // Hide the notification message after 2 seconds
+            }, 2000);
+
+         document.getElementById('dropdowns').style.display = 'block';
+            document.getElementById('container').style.display = 'none';
+           document.getElementById('hamburger_icon').style.display = 'none';
+           document.getElementById('features').style.display = 'block';
+           }
+      } else {
+                location.reload();
+                alert("Uploaded wrong file for " + dropdown1_value + "");
+      }
+    }
+  };
+        } else {
+        location.reload();
+          alert('You are not connected to the internet. Please try the offline method.');
+        }
+
+      }
+   }
+
+     function closeNav() {
+          document.querySelector("#dropdowns").style.width = "0";
+          document.getElementById('hamburger_icon').style.display = 'block';
+
+        }
+
+        function openNav() {
+  document.querySelector("#dropdowns").style.width = "370px";
+}
+
+    function updateDropdown2() {
+       //Get the selected value from the first dropdown list
+    var selected = document.getElementById("dropdown1").value;
+    // Get the second dropdown list
+    var dropdown2 = document.getElementById("dropdown2");
+    // Clear the second dropdown list
+    dropdown2.options.length = 0;
+    document.getElementById('advanced-search-dropdown').style.display= 'none';
+    // Populate the second dropdown list based on the selected value
+    if (selected == ""){
+    document.getElementById('submit').disabled= true;
+    document.getElementById('export').disabled= true;
+    document.getElementById('advanced-search').style.display= 'none';
+
+    }
+    if (selected == "TB-01") {
+        document.getElementById('submit').disabled= false;
+        document.getElementById('export').disabled= false;
+        document.getElementById('advanced-search').style.display= 'block';
+        //dropdown2.options.add(new Option("all", "all"));
+        dropdown2.options.add(new Option("GNGNS", "GNGNS"));
+        dropdown2.options.add(new Option("GNGSA", "GNGSA"));
+        dropdown2.options.add(new Option("GNRMC", "GNRMC"));
+        dropdown2.options.add(new Option("PERDCRW", "PERDCRW"));
+        dropdown2.options.add(new Option("PERDCRX", "PERDCRX"));
+        dropdown2.options.add(new Option("PERDCRY", "PERDCRY"));
+        dropdown2.options.add(new Option("PERDCRZ", "PERDCRZ"));
+        dropdown2.options.add(new Option("PERDACK", "PERDACK"));
+        dropdown2.options.add(new Option("GPGSV", "GPGSV"));
+
+    } else if (selected == "GT...") {
+        document.getElementById('submit').disabled= false;
+        document.getElementById('export').disabled= false;
+        document.getElementById('advanced-search').style.display= 'block';
+        dropdown2.options.add(new Option("Random", "Random"));
+        dropdown2.options.add(new Option("Random2", "Random2"));
+    }
+}
+
+function updateDropdown3(){
+    var dropdown2 = document.getElementById("dropdown2").value;
+    var dropdown3 = document.getElementById("chartType");
+    var dropdown4 = document.getElementById("advanced_category");
+      document.getElementById("textbox1").value = "";
+    document.getElementById("textbox2").value = "";
+    const rangeLabel = document.querySelector("#range-label");
+    dropdown4.options.length = 0;
+
+    for (var i = 0; i < dropdown3.options.length; i++) {
+    if (dropdown3.options[i].value === "scatter") {
+      dropdown3.options.remove(i);
+    }
+  }
+    if (dropdown2 == "GNRMC" || dropdown2 == "GNGNS"){
+    dropdown3.options.add(new Option("Scatter Chart", "scatter"));
+    }
+
+     if (dropdown2 == "GNGNS") {
+        min = 0;
+        max = 32;
+        rangeLabel.textContent = `Range: 0 to 32`
+        dropdown4.options.add(new Option("Number of satellites", "Number of satellites"));
+        dropdown4.options.add(new Option("Latitude", "Latitude"));
+        dropdown4.options.add(new Option("Longitude", "Longitude"));
+        dropdown4.options.add(new Option("Sea level altitude", "Sea level altitude"));
+        dropdown4.options.add(new Option("HDOP", "HDOP"));
+        dropdown4.options.add(new Option("Geoidal height", "Geoidal height"));
+    }
+    else if(dropdown2 == "GNGSA"){
+        min = 0;
+        max = 50;
+        rangeLabel.textContent = `Range: 0 to 50`
+        dropdown4.options.add(new Option("VDOP", "VDOP"));
+        dropdown4.options.add(new Option("PDOP", "PDOP"));
+    }
+    else if(dropdown2 == "GNRMC"){
+    min = 0;
+        max = 90;
+        rangeLabel.textContent = `Range: 0 to 90`
+         dropdown4.options.add(new Option("Latitude", "Latitude"));
+        dropdown4.options.add(new Option("Longitude", "Longitude"));
+    }
+    else if(dropdown2 == "PERDCRW"){
+    min = 0;
+        max = 2;
+        rangeLabel.textContent = `Range: 0 to 2`
+        dropdown4.options.add(new Option("Time status", "Time status"));
+        dropdown4.options.add(new Option("Time difference", "Time difference"));
+        // dropdown4.options.add(new Option("Date & Time", "Date & Time"));
+        dropdown4.options.add(new Option("PPS status", "PPS status"));
+        dropdown4.options.add(new Option("Drift", "Drift"));
+        dropdown4.options.add(new Option("Temperature", "Temperature"));
+    }
+    else if(dropdown2 == "PERDCRX"){
+        min = -100000;
+        max = 100000;
+        rangeLabel.textContent = `Range: -100000 to +100000`
+         dropdown4.options.add(new Option("Cable delay", "Cable delay"));
+        dropdown4.options.add(new Option("Estimated accuracy", "Estimated accuracy"));
+    }
+    else if(dropdown2 == "PERDCRY"){
+          min = 0;
+        max = 3;
+        rangeLabel.textContent = `Range: 0 to 3`
+         dropdown4.options.add(new Option("Position mode", "Position mode"));
+        dropdown4.options.add(new Option("Position difference", "Position difference"));
+         dropdown4.options.add(new Option("Sigma threshold", "Sigma threshold"));
+          dropdown4.options.add(new Option("Time", "Time"));
+         dropdown4.options.add(new Option("Time threshold", "Time threshold"));
+         dropdown4.options.add(new Option("TRAIM solution", "TRAIM solution"));
+         dropdown4.options.add(new Option("TRAIM status", "TRAIM status"));
+         dropdown4.options.add(new Option("Removed Satellites", "Removed Satellites"));
+         dropdown4.options.add(new Option("antenna current detection", "antenna current detection"));
+         dropdown4.options.add(new Option("spoofing signal detection", "spoofing signal detection"));
+         dropdown4.options.add(new Option("Energization time", "Energization time"));
+    }
+    else if(dropdown2 == "PERDCRZ"){
+    min = 0;
+        max = 5;
+        rangeLabel.textContent = `Range: 0 to 5`
+         dropdown4.options.add(new Option("Frequency mode", "Frequency mode"));
+        dropdown4.options.add(new Option("PPS timing error", "PPS timing error"));
+        dropdown4.options.add(new Option("Alarm", "Alarm"));
+        dropdown4.options.add(new Option("Frequency error", "Frequency error"));
+    }
+    else if(dropdown2 == "PERDACK"){
+    min = 0;
+        max = 255;
+        rangeLabel.textContent = `Range: 0 to 255`
+         dropdown4.options.add(new Option("PERDACK Sequence", "PERDACK Sequence"));
+         }
+         else{
+         dropdown4.options.add(new Option("all random", "all random"));
+         }
+}
+
+
+function updateDropdown4(){
+    var dropdown4 = document.getElementById("advanced_category").value;
+    var dropdown2 = document.getElementById("dropdown2").value;
+    const rangeLabel = document.querySelector("#range-label");
+    if(dropdown2 == "GNGNS"){
+    if(dropdown4 == "Number of satellites"){
+        rangeLabel.textContent = `Range: 0 to 32`
+        min = 0;
+        max = 32;
+    }
+    else if(dropdown4 == "Latitude"){
+    rangeLabel.textContent = `Range: 0 to 90`
+    min = 0;
+    max= 90;
+    }
+    else if(dropdown4 == "Longitude"){
+    rangeLabel.textContent = `Range: 0 to 180`
+    min = 0;
+    max= 180;
+    }
+    else if(dropdown4 == "Sea level altitude"){
+    rangeLabel.textContent = `No Range`
+    min = -18;
+    max= 100;
+    }
+    else if(dropdown4 == "HDOP"){
+    rangeLabel.textContent = `Range: 0 to 50`
+    min = 0;
+    max= 50;
+    }
+    else if(dropdown4 == "Geoidal height"){
+    rangeLabel.textContent = `No Range`
+    min = 0;
+    max= 100;
+    }
+    }
+    else if(dropdown2 == "GNGSA"){
+            if(dropdown4 == "VDOP"){
+        rangeLabel.textContent = `Range: 0 to 50`
+        min = 0;
+        max = 50;
+    }
+    else if(dropdown4 == "PDOP"){
+    rangeLabel.textContent = `Range: 0 to 50`
+    min = 0;
+    max= 50;
+    }
+        }
+    else if(dropdown2 == "GNRMC"){
+            if(dropdown4 == "Latitude"){
+        rangeLabel.textContent = `Range: 0 to 90`
+        min = 0;
+        max = 90;
+    }
+    else if(dropdown4 == "Longitude"){
+    rangeLabel.textContent = `Range: 0 to 180`
+    min = 0;
+    max= 180;
+    }
+        }
+    else if(dropdown2 == "PERDCRW"){
+    if(dropdown4 == "Time difference"){
+    rangeLabel.textContent = `Range: 0 to 5`
+    min = 0;
+    max= 5;
+    }
+    else if(dropdown4 == "Date & Time"){
+        rangeLabel.textContent = `Range: 0 to 90`
+        min = 0;
+        max = 90;
+    }
+    else if(dropdown4 == "Time status"){
+    rangeLabel.textContent = `Range: 0 to 2`
+    min = 0;
+    max= 2;
+    }
+    else if(dropdown4 == "PPS status"){
+    rangeLabel.textContent = `Range: 0 to 5`
+    min = 0;
+    max= 5;
+    }
+    else if(dropdown4 == "Drift"){
+    rangeLabel.textContent = `No Range`
+    min = 0;
+    max= 1000;
+    }
+    else if(dropdown4 == "Temperature"){
+    rangeLabel.textContent = `No Range`
+    min = 0;
+    max= 100;
+    }
+
+        }
+    else if(dropdown2 == "PERDCRX"){
+            if(dropdown4 == "Cable delay"){
+        rangeLabel.textContent = `Range: -100000 to +100000`
+        min = -100000;
+        max = 100000;
+    }
+    else if(dropdown4 == "Estimated accuracy"){
+    rangeLabel.textContent = `Range: 0000 to 9999`
+    min = 0;
+    max= 9999;
+    }
+        }
+    else if(dropdown2 == "PERDCRY"){
+    if(dropdown4 == "Position mode"){
+        rangeLabel.textContent = `Range: 0 to 3`
+        min = 0;
+        max = 3;
+    }
+    else if(dropdown4 == "Position difference"){
+    rangeLabel.textContent = `Range: 0000 to 9999`
+    min = 0;
+    max= 9999;
+    }
+    else if(dropdown4 == "Sigma threshold"){
+    rangeLabel.textContent = `Range: 000 to 255`
+    min = 0;
+    max= 255;
+    }
+    else if(dropdown4 == "Time"){
+    rangeLabel.textContent = `Range: 000000 to 999999`
+    min = 0;
+    max= 999999;
+    }
+    else if(dropdown4 == "Time threshold"){
+    rangeLabel.textContent = `Range: 000000 to 604800`
+    min = 0;
+    max= 604800;
+    }
+    else if(dropdown4 == "TRAIM solution"){
+    rangeLabel.textContent = `Range: 0 to 2`
+    min = 0;
+    max= 2;
+    }
+    else if(dropdown4 == "Removed Satellites"){
+    rangeLabel.textContent = `Range: 0 to 2`
+    min = 0;
+    max= 2;
+    }
+    else if(dropdown4 == "antenna current detection"){
+    rangeLabel.textContent = `Range: 0 to 3`
+    min = 0;
+    max= 3;
+    }
+    else if(dropdown4 == "spoofing signal detection"){
+    rangeLabel.textContent = `Range: 0 to 1`
+    min = 0;
+    max= 1;
+    }
+    else if(dropdown4 == "Energization time"){
+    rangeLabel.textContent = `Range: 0 to 4`
+    min = 0;
+    max= 4;
+    }
+        }
+    else if(dropdown2 == "PERDCRZ"){
+    if(dropdown4 == "Frequency mode"){
+        rangeLabel.textContent = `Range: 0 to 5`
+        min = 0;
+        max = 5;
+    }
+    else if(dropdown4 == "PPS timing error"){
+    rangeLabel.textContent = `Range: -999999999 to +999999999`
+    min = -999999999;
+    max= +999999999;
+    }
+    else if(dropdown4 == "Alarm"){
+    rangeLabel.textContent = `Range: 0 to 255`
+    min = 0;
+    max= 255;
+    }
+    else if(dropdown4 == "Frequency error"){
+    rangeLabel.textContent = `Range: -99999 to +99999`
+    min = -99999;
+    max= 99999;
+    }
+    }
+    else if(dropdown2 == "PERDACK"){
+        rangeLabel.textContent = `Range: -1 to 255`
+        min = -1;
+        max = 255;
+    }
+}
+
+</script>
+</head>
+<body>
+
+<form method="post" enctype="multipart/form-data" id="my-form">
+    {% csrf_token %}
+</form>
+
+<nav>
+  <div class="logo">
+    <a href="#"><img src="https://core.juniper.net/assets/img/intranet/logo-new.svg" alt="Juniper Networks Logo"></a>
+  </div>
+  <h1 class="heading">GNSS Log Analyzer</h1>
+</nav>
+
+<div class="main" id="main">
+<div class="container" id="container">
+    <div class="tool__header" id="tool__header_id">
+    <h1 class="tool__header__title">Analyze your device data</h1>
+    <h2 class="tool__header__subtitle">GNSS analysis made easy with Juniper GNSS Log Analysis tool</h2>
+        </div>
+
+    <div class="text-box" id="text-box">
+    <label for="myTextbox">Enter router IP:</label>
+<input type="text" id="myTextbox" name="myTextbox" placeholder="router ip" required>
+        	<button onclick="fileUploaded()">Get GNSS file</button>
+        </div>
+
+    <div class="ordevice">Or</div>
+
+    <div class="upload-section" id="upload-file">
+      <label for="file">Choose a file to upload</label>
+    <input type="file" id="file" name="file" accept=".log" style="display:none;" onchange="fileUploaded()">
+    </div>
+        <div class="uploader__droptxt" id="drop">or drop logs here</div>
+
+<!--<div class="uploader__extra">
+    <a class="btn-icon uploader__extra__btn tooltip tooltip--right" id="uploadDisk" href="javascript:;" title="Upload from your computer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="19" viewBox="0 0 20 19" fill="#fff" fill-rule="nonzero"><desc>Upload from computer.</desc><path d="M4.8 19c-.442 0-.8-.448-.8-1s.358-1 .8-1h10.4c.442 0 .8.448.8 1s-.358 1-.8 1H4.8z"></path><path d="M7 15h6l-1 3H8z"></path><path d="M2 2v11h16V2H2zM1 0h18a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1a1 1 0 0 1 1-1z"></path></svg>
+    </a>
+                <a id="gdrive_file_selector" class="btn-icon uploader__extra__btn tooltip tooltip--right active" title="Select PDF from Google Drive" data-title="Select PDF from Google Drive">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 18 16"><path fill="#FFF" d="M8.7375,5.80725 L3.021,15.70725 L0.12375,10.69725 L5.847,0.795 L8.7375,5.80725 Z M17.865,10.38225 L12.078,10.39125 L6.378,0.489 L12.1725,0.489 L17.865,10.38225 Z M17.87625,10.9875 L14.9865,15.9975 L3.5415,15.99 L6.43425,10.98375 L17.87625,10.9875 Z"></path></svg>
+        </a>
+        <a id="dropbox_file_selector" class="btn-icon uploader__extra__btn tooltip tooltip--right active" title="Select PDF from Dropbox" data-title="Select PDF from Dropbox">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path fill="#FFF" d="M5.3475,0.7035 L0.096,4.125 L3.708,7.03725 L9.018,3.765 L5.3475,0.7035 Z M17.904,4.14 L12.66525,0.7275 L9.01875,3.7725 L14.29875,7.03875 L17.904,4.14 Z M9.01875,10.305 L12.66525,13.35975 L17.904,9.945 L14.2995,7.0395 L9.01875,10.305 Z M0.096,9.9585 L5.3475,13.35975 L9.01875,10.305 L3.70875,7.0455 L0.096,9.9585 Z M9.01875,10.9635 L5.35575,14.0385 L3.786,13.02 L3.786,14.16 L9.01875,17.30475 L14.271,14.15175 L14.271,13.0125 L12.693,14.031 L9.01875,10.9635 Z"></path></svg>
+        </a>
+        </div>-->
+
+    </div>
+<div id="upload-success" class="notification">File successfully uploaded!</div>
+
+
+    <div id="dropdowns">
+
+<div class="option__panel option__panel--active" id="merge-options">
+    <div class="option__panel__title">GNSS
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+</svg></a>
+    </div>
+    <div class="option__panel__content">
+
+
+        <!-- Dropdown lists -->
+        <span class="dropdown_span">Select the Device:</span>
+<select id="dropdown1" name="dropdown1" onchange="updateDropdown2()">
+
+    <option value="">Select an option...</option>
+    <option value="TB-01">TB-01</option>
+    <option value="GT...">GT...</option>
+</select>
+        <span class="dropdown_span">Select the parameter:</span>
+        <select id="dropdown2" name="dropdown2" onchange="updateDropdown3()">
+        <option value="">Select an option...</option>
+</select>
+
+        <span class="dropdown_span">Select the type of chart:</span>
+         <select id="chartType">
+    <option value="line">Line Chart</option>
+    <option value="bar">Bar Chart</option>
+    <option value="pie">Pie Chart</option>
+             </select>
+</div>
+    </div>
+
+         <div class="advanced-search" id="advanced-search" style="display: none;">
+      <button class="advanced-search-button" id="advanced-search-button">Advanced Search</button>
+            <div class="advanced-search-dropdown" id="advanced-search-dropdown" style="display: none;">
+         <span class="category">Category:</span>
+                <select name="advanced_category" id="advanced_category" onchange="updateDropdown4()">
+                    <option value="">Select an option...</option>
+                </select>
+                <div id="advanced-search-textbox">
+                <div id="range-label">Range: 0 to 32</div>
+                <input type="text" id="textbox1" name="textbox1" placeholder="enter the min value" required>
+                <input type="text" id="textbox2" name="textbox2" placeholder="enter the max value" required>
+                </div>
+                </div>
+             </div>
+
+
+        <div class="submit_button">
+        <div id="processTaskWrapper" class="tooltip tooltip--top" data-title="Please, select more PDF files" style="display: block;" title="Please, select more PDF files"></div>
+        <button id="submit" name="button1" type="submit" class="btn btn--process btn--red merge" disabled="disabled">
+        <span id="processTaskTextBtn">Submit</span>
+        <span><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="#FFF" fill-rule="evenodd"><path d="M13 26C5.82 26 0 20.18 0 13S5.82 0 13 0s13 5.82 13 13-5.82 13-13 13zm0-2c6.075 0 11-4.925 11-11S19.075 2 13 2 2 6.925 2 13s4.925 11 11 11z" fill-rule="nonzero"></path><path d="M18.684 13.105a.55.55 0 0 1-.148.378l-5.263 5.263a.55.55 0 0 1-.378.148.54.54 0 0 1-.526-.526V15.21H7.842a.54.54 0 0 1-.526-.526v-3.158A.54.54 0 0 1 7.842 11h4.526V7.842a.52.52 0 0 1 .526-.526c.148 0 .28.066.395.164l5.247 5.247a.55.55 0 0 1 .148.378z"></path></svg></span>
+        </button>
+            </div>
+
+         <div class="export_CSV_button">
+        <button id="export" name="button2" type="export" class="btn btn-success btn--red merge" disabled="disabled" onclick="exportCSV()">
+        <span id="processTaskExportBtn">Export CSV</span>
+        <span><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="#FFF" fill-rule="evenodd"><path d="M13 26C5.82 26 0 20.18 0 13S5.82 0 13 0s13 5.82 13 13-5.82 13-13 13zm0-2c6.075 0 11-4.925 11-11S19.075 2 13 2 2 6.925 2 13s4.925 11 11 11z" fill-rule="nonzero"></path><path d="M18.684 13.105a.55.55 0 0 1-.148.378l-5.263 5.263a.55.55 0 0 1-.378.148.54.54 0 0 1-.526-.526V15.21H7.842a.54.54 0 0 1-.526-.526v-3.158A.54.54 0 0 1 7.842 11h4.526V7.842a.52.52 0 0 1 .526-.526c.148 0 .28.066.395.164l5.247 5.247a.55.55 0 0 1 .148.378z"></path></svg></span>
+        </button>
+            </div>
+    </div>
+
+
+<div id="chart-display">
+    <span id="hamburger_icon" style="font-size:30px;cursor:pointer;display:none;" onclick="openNav()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+</svg></span>
+<!--<label for="color">Select Chart Color:</label>-->
+
+    <div id="features" style="display:none;">
+        <input type="color" id="color" name="color" value="#36DB14">
+
+<button onclick="location.reload()" class="reload-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="bi bi-house" viewBox="0 0 16 16">
+  <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
+</svg>
+</button>
+        </div>
+
+<div id="chart-container">
+    <!--The chart will be dynamically created and added here-->
+</div>
+
+    <div class="export_pdf_button">
+        <button id="export-pdf" type="export" class="btn btn-success btn--red merge" style="display:none;">
+        <span id="processTaskExportBtn">Export PDF</span>
+        <span><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="#FFF" fill-rule="evenodd"><path d="M13 26C5.82 26 0 20.18 0 13S5.82 0 13 0s13 5.82 13 13-5.82 13-13 13zm0-2c6.075 0 11-4.925 11-11S19.075 2 13 2 2 6.925 2 13s4.925 11 11 11z" fill-rule="nonzero"></path><path d="M18.684 13.105a.55.55 0 0 1-.148.378l-5.263 5.263a.55.55 0 0 1-.378.148.54.54 0 0 1-.526-.526V15.21H7.842a.54.54 0 0 1-.526-.526v-3.158A.54.54 0 0 1 7.842 11h4.526V7.842a.52.52 0 0 1 .526-.526c.148 0 .28.066.395.164l5.247 5.247a.55.55 0 0 1 .148.378z"></path></svg></span>
+        </button>
+            </div>
+
+</div>
+</div>
+
+
+
+
+
+<!-- JavaScript to handle dropdowns -->
+<script>
+/*
+const dropZone = document.getElementById('drop);
+const fileInput = document.getElementById('file');
+
+dropZone.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (event) => {
+  event.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const files = event.dataTransfer.files;
+  fileInput.files = files;
+  uploadFiles(files);
+});
+
+fileInput.addEventListener('change', () => {
+  const files = fileInput.files;
+  uploadFiles(files);
+});
+*/
+
+
+
+
+const advancedSearchButton = document.querySelector('#advanced-search-button');
+advancedSearchButton.addEventListener('click', function() {
+document.getElementById("advanced-search-textbox").value="";
+ if(document.getElementById('advanced-search-dropdown').style.display== 'none'){
+ document.getElementById('advanced-search-dropdown').style.display= 'block';
+ }
+ else{
+ document.getElementById('advanced-search-dropdown').style.display= 'none';
+ }
+});
+
+
+var sendButton = document.getElementById("submit");
+var exportButton  = document.getElementById("export");
+var responseContainer = document.getElementById("chart-container");
+var csrfToken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+var xhr = new XMLHttpRequest();
+
+
+function sendFile(fileContent) {
+  var dropdown1_value = document.getElementById("dropdown1").value;
+  var dropdown2_value = document.getElementById("dropdown2").value;
+  var dropdown3_value = document.getElementById("chartType").value;
+  var dropdown4_value;
+  var advanced_text;
+
+  if(document.getElementById('advanced-search-dropdown').style.display== 'block'){
+  dropdown4_value = document.getElementById("advanced_category").value;
+  advanced_text_1 = document.getElementById("textbox1").value.trim();
+    advanced_text_2 = document.getElementById("textbox2").value.trim();
+ 
+    if(advanced_text_1 === "" && advanced_text_2 ===""){
+    alert("As min and max value not entered, min will be taken as " + min + " and max will be taken as " + max)
+    advanced_text_1 = min;
+    advanced_text_2 = max;
+    }
+    else if(isNaN(advanced_text_1) || isNaN(advanced_text_2)) {
+    alert("wrong value entered as only numbers are allowed in the textbox, min will be taken as " + min + " and max will be taken as " + max);
+    advanced_text_1 = min;
+    advanced_text_2 = max;
+    }
+    else if(advanced_text_1 === "" && advanced_text_2 !== ""){
+    if(parseFloat(advanced_text_2)<min || parseFloat(advanced_text_2)>max){
+    alert("Only max value entered, min value will be taken as " + min + "\nAs max value is out of range, it is taken as " + max)
+    advanced_text_1 = min;
+    advanced_text_2 = max;
+    }
+    else{
+    alert("Only max value entered, min value will be taken as " + min)
+    advanced_text_1 = min;
+    }
+    }
+    else if(advanced_text_2 === "" && advanced_text_1 !== ""){
+    if(parseFloat(advanced_text_1) < min || parseFloat(advanced_text_1) > max){
+    alert("Only min value entered, max value will be taken as " + max + "\nAs min value is out of range, it is taken as " + min)
+    advanced_text_1 = min;
+    advanced_text_2 = max;
+    }
+    else{
+    alert("Only min value entered, max value will be taken as " + max)
+    advanced_text_2 = max;
+    }
+    }
+   else{
+       if((parseFloat(advanced_text_1) < min || parseFloat(advanced_text_1) > max) && (parseFloat(advanced_text_2) < min || parseFloat(advanced_text_2) > max)){
+    alert("As min and max value, both are out of range, min is taken as " + min + " and max is taken as " + max);
+    advanced_text_1=min;
+    advanced_text_2=max;
+}
+else if(parseFloat(advanced_text_1)<min || parseFloat(advanced_text_1)>max){
+    alert("As min value is out of range, it is taken as " + min);
+    advanced_text_1=min;
+}
+else if(parseFloat(advanced_text_2)<min || parseFloat(advanced_text_2)>max){
+    alert("As max value is out of range, it is taken as " + max);
+    advanced_text_2=max;
+}
+    else if(parseFloat(advanced_text_1) > parseFloat(advanced_text_2)){
+    alert("max value cannot be less than min value, so the values are interchanged")
+    let temp = advanced_text_1;
+    advanced_text_1 = advanced_text_2;
+    advanced_text_2 = temp;
+    }
+   }
+   }
+   else{
+   dropdown4_value="";
+   advanced_text_1="";
+   advanced_text_2="";
+   }
+
+  const divSelect = document.getElementById('chart-container');
+while (divSelect.firstChild) {
+    divSelect.removeChild(divSelect.firstChild);
+    }
+  const divAnim = document.getElementById('chart-container');
+  var loadingElement = document.createElement('div');
+  loadingElement.classList.add('loader');
+  divAnim.appendChild(loadingElement);
+
+  xhr.open("POST", "/chart/", true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("X-CSRFToken", csrfToken);
+  xhr.send(JSON.stringify({'fileContent': fileContent, 'dropdown1_value': dropdown1_value,'dropdown2_value': dropdown2_value, 'dropdown3_value': dropdown3_value, 'dropdown4_value': dropdown4_value, 'advanced_text_1': advanced_text_1, 'advanced_text_2': advanced_text_2}));
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status === 200) {
+        jsonResponse = JSON.parse(xhr.responseText);
+        if(jsonResponse.data === null){
+          loadingElement.style.display = 'none';
+            const divSelect = document.getElementById('chart-container');
+            var labelElement = document.createElement('p');
+          labelElement.innerText = `No value satisfying this range. Please change the range`;
+        divSelect.appendChild(labelElement);
+        }
+        else if(jsonResponse.data === 'File size limit'){
+                location.reload();
+        alert("File size exceeded");
+        }
+        else{
+        drawGraph(jsonResponse);
+        }
+      } else {
+                location.reload();
+                alert("Uploaded wrong file for " + dropdown1_value + "");
+      }
+    }
+  };
+}
+
+
+sendButton.addEventListener("click", function() {
+  var inputFile = document.getElementById('file');
+document.getElementById('export-pdf').style.display = 'none';
+  if (inputFile.files.length > 0) {
+  var file = inputFile.files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+       var fileContent = reader.result;
+    sendFile(fileContent);
+  }
+  reader.readAsText(file);}
+  else{
+ var fileContent = decodedContents;
+      sendFile(fileContent);
+  }
+
+});
+
+
+function exportFile(fileContent) {
+  var dropdown1_value = document.getElementById("dropdown1").value;
+  var dropdown2_value = document.getElementById("dropdown2").value;
+var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/CSV/", true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("X-CSRFToken", csrfToken);
+  xhr.responseType = "blob"; // added to specify the response type as blob
+  xhr.onload = function() { // added to handle the download after successful response
+    if (this.status === 200) {
+      var blob = new Blob([this.response], {type: 'csv'});
+      var url = window.URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = window.URL.createObjectURL(this.response);
+      link.download = `GNSS-${dropdown1_value}.csv`;
+       document.body.appendChild(link); // added for Firefox compatibility
+      link.click();
+     document.body.removeChild(link); // added for Firefox compatibility
+     window.URL.revokeObjectURL(link.href);
+      alert("CSV file downloaded successfully!");
+    }
+  };
+  xhr.send(JSON.stringify({'fileContent': fileContent, 'dropdown1_value': dropdown1_value,'dropdown2_value': dropdown2_value}));
+}
+
+exportButton.addEventListener("click", function() {
+ var inputFile = document.getElementById('file');
+  if (inputFile.files.length > 0) {
+  var file = inputFile.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var fileContent = reader.result;
+    exportFile(fileContent);
+  }
+  reader.readAsText(file);
+  }
+  else{
+ var fileContent = decodedContents;
+      exportFile(fileContent);
+  }
+});
+
+
+
+document.getElementById('export-pdf').addEventListener('click', () => {
+var i=0;
+  const doc = new jsPDF();
+  const canvasElements = document.querySelectorAll('.chart');
+   var dropdown1_value = document.getElementById("dropdown1").value;
+  var dropdown2_value = document.getElementById("dropdown2").value;
+  var x_axis,parameter,checksum;
+
+    for (var key in jsonResponse) {
+    var data1 = jsonResponse[key]
+    for (var loop in data1) {
+      if(i==0){
+        x_axis = data1[loop].length;
+        parameter = loop;
+        i = i + 1;
+      }
+      else if (i == 1) {
+        checksum = data1[loop].length;
+        i=i+1;
+      }
+      }
+      }
+
+    doc.text("Details:", 90, 10);
+    doc.text("Device:", 10, 30);
+    doc.text(dropdown1_value, doc.getTextWidth("Device: ") + 10, 30);
+    doc.text("Parameter:", 10, 40);
+    doc.text(dropdown2_value, doc.getTextWidth("Parameter: ") + 10, 40);
+    doc.text("x`ssages processed for " + parameter + ": ", 10, 50);
+    doc.text(x_axis.toString(), doc.getTextWidth("Number of Messages processed for " + parameter + ": ") + 10, 50);
+    doc.text("Total number of messages failed for checksum validation:", 10, 60);
+    doc.text(checksum.toString(), doc.getTextWidth("Total number of messages failed for checksum validation: ") + 10, 60);
+    //doc.text("To know more about " + parameter, 10,90);
+    //doc.text("read the ", doc.getTextWidth("To know more about ") + 10, 90)
+    const linkText = dropdown1_value + " manual Specifications guide";
+  const linkUrl = 'https://drive.google.com/file/d/1a93w-gpDe_1gvISrcaYFCSLYSJpyQwe4/view?usp=sharing';
+  const linkX = 10;
+  const linkY = 90;
+  doc.setTextColor(0, 0, 255);
+  doc.setDrawColor(0, 0, 255);
+  doc.setFont(undefined, 'underline');
+  doc.textWithLink(linkText, linkX, linkY, {url: linkUrl});
+
+    doc.addPage();
+  canvasElements.forEach((canvas, index) => {
+    if (index !== 0) {
+      doc.addPage();
+    }
+    const imgData = canvas.toDataURL('image/png');
+    doc.addImage(imgData, 'PNG', 10, 10, 180, 100);
+  });
+  doc.save('charts.pdf');
+});
+
+
+function drawGraph(jsonResponse) {
+  var i = 0;
+  var c = 0;
+  var charts = []; // array to hold all chart objects
+  const chartSelect = document.getElementById('chartType');
+  const borderColorSelect = document.getElementById('color');
+  const divSelect = document.getElementById('chart-container');
+  document.getElementById('main').style.overflowY = 'auto';
+  var dropdown3_value = document.getElementById("chartType").value;
+
+  // remove all existing chart elements
+  while (divSelect.firstChild) {
+    divSelect.removeChild(divSelect.firstChild);
+  }
+
+  for (var key in jsonResponse) {
+    var data1 = jsonResponse[key]
+    for (var loop in data1) {
+      if(i==0){
+        var x_axis = data1[loop];
+        var labelElement = document.createElement('p');
+        labelElement.innerText = `Number of Messages Processed for ${loop}: ${x_axis.length}`;
+        divSelect.appendChild(labelElement);
+        i = i + 1;
+      }
+      else if (i == 1) {
+        var checksum = data1[loop];
+      var checkElement = document.createElement('p');
+        checkElement.innerText = `Total number of messages failed for checksum validation: ${checksum.length}`;
+        divSelect.appendChild(checkElement);
+        i=i+1;
+      } else if (i==2) {
+      var status = data1[loop];
+      i = i + 1;
+      }else if (i==3) {
+      var info = data1[loop];
+      i = i + 1;
+      }
+      else {
+      if (dropdown3_value === "scatter" && c == 10) {
+                  status[0]=status[0] + "\n" + status[1];
+                  var store = loop;
+                  c=c+1;
+      }
+      else{
+        var chartData = data1[loop];
+        var chartElement = document.createElement('canvas');
+        chartElement.id = 'chart-' + loop;
+        chartElement.classList.add('chart');
+        divSelect.appendChild(chartElement);
+
+          const settingsIcon = document.createElement('div');
+          settingsIcon.classList.add(i);
+          settingsIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>';
+          chartElement.parentNode.appendChild(settingsIcon);
+
+          settingsIcon.addEventListener('click', function() {
+            alert(status[parseInt(this.classList) - 4]);
+          });
+
+          const infoIcon = document.createElement('div');
+          infoIcon.classList.add(i);
+          infoIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>';
+          chartElement.parentNode.appendChild(infoIcon);
+
+          infoIcon.addEventListener('click', function() {
+            alert(info[parseInt(this.classList) - 4]);
+          });
+
+
+        // attach event listeners to select elements
+        chartSelect.addEventListener('change', () => {
+          chartType = chartSelect.value;
+          updateCharts();
+        });
+
+        borderColorSelect.addEventListener('change', () => {
+          color = borderColorSelect.value;
+          updateCharts();
+        });
+
+
+        var ctx = chartElement.getContext('2d');
+        let chartType = chartSelect.value;
+        let color = borderColorSelect.value;
+
+        const updateCharts = () => {
+          charts.forEach(chart => {
+            chart.type = chartType;
+            chart.data.datasets[0].borderColor = color;
+            chart.update();
+          });
+        };
+
+        const chartDataSets = [{
+          label: loop,
+          data: data1[loop],
+          backgroundColor: color,
+          borderColor: color,
+          tension: 0.4
+        }];
+
+        /*if (dropdown3_value === "scatter") {
+          chartDataSets.push({
+            label: store,
+            data: data1[store],
+            //backgroundColor: "rgba(255, 99, 132, 0.2)",
+            borderColor: "rgb(255, 99, 132)",
+            showLine: false
+          });
+        }*/
+
+        // create new chart object
+        const chart = new Chart(ctx, {
+          type: chartType,
+          data: {
+            labels: x_axis,
+            datasets: chartDataSets
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            },
+            responsive: true,
+            plugins:{
+              tooltip: {
+                enabled: true,
+                yAlign: 'bottom',
+                displayColors: false,
+                callbacks: {
+                  title: function(chart) {
+                    const titleDataIndex = chart[0].dataIndex;
+                    return `X axis data: ${titleDataIndex}`;
+                  },
+                  label: function(context) {
+                    const labelDataIndex = context.dataIndex;
+                    const label = context.dataset.label;
+                    const value = context.formattedValue;
+                    const time = x_axis[labelDataIndex];
+                    return `${label}: ${value} at ${time}`;
+                  }
+                }
+              },
+              zoom:{
+               zoom:{
+                wheel:{
+                  enabled: true
+            },
+            pinch:{
+            enabled: true
+            },
+            mode: 'xy'
+                },
+             pan: {
+        enabled: true,
+        mode: 'xy'
+               }
+              },
+              custom:{
+              reloadButton: {
+          enabled: true,
+          position: 'top-right',
+          text: 'Reload',
+          className: 'custom-reload',
+          onClick: function(chart) {
+            chart.resetZoom(); // reset the zoom level
+            chart.update(); // update the chart
+          }
+        }
+              }
+            },
+            hover: {
+              mode: 'nearest',
+              intersect: true
+            }
+          }
+        });
+         charts.push(chart);// add new chart object to array
+      document.getElementById('export-pdf').style.display = 'block';
+                  i = i+1;
+      }
+      }
+    }
+  }
+};
+
+</script>
+
+</body>
+</html>

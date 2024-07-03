@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+    <title>GNSS log analyzer</title>
+    <script>
+        function fileUploaded() {
+        // Get the file input element
+        var inputFile = document.getElementById('file');
+
+        // Check if a file has been selected
+        if (inputFile.files.length > 0) {
+            // Show the dropdowns and button
+            document.getElementById('dropdowns').style.display = 'block';
+        } else {
+            // Hide the dropdowns and button
+            document.getElementById('dropdowns').style.display = 'none';
+        }
+    }
+
+    function updateDropdown2() {
+       //Get the selected value from the first dropdown list
+    var selected = document.getElementById("dropdown1").value;
+    // Get the second dropdown list
+    var dropdown2 = document.getElementById("dropdown2");
+    // Clear the second dropdown list
+    dropdown2.options.length = 0;
+    // Populate the second dropdown list based on the selected value
+    if (selected == "TB-01") {
+        dropdown2.options.add(new Option("all", "all"));
+        dropdown2.options.add(new Option("GNGNS", "GNGNS"));
+        dropdown2.options.add(new Option("GNGSA", "GNGSA"));
+        dropdown2.options.add(new Option("GNRMC", "GNRMC"));
+        dropdown2.options.add(new Option("PERDCRW", "PERDCRW"));
+        dropdown2.options.add(new Option("PERDCRX", "PERDCRX"));
+        dropdown2.options.add(new Option("PERDCRY", "PERDCRY"));
+        dropdown2.options.add(new Option("PERDCRZ", "PERDCRZ"));
+        dropdown2.options.add(new Option("PERDACK", "PERDACK"));
+
+    } else if (selected == "GT...") {
+        dropdown2.options.add(new Option("Random", "Random"));
+        dropdown2.options.add(new Option("Random2", "Random2"));
+    }
+}
+    </script>
+</head>
+<body>
+<!--<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <label for="file">Choose a file to upload:</label>
+  <input type="file" name="file" id="file">
+  <button type="submit">Upload</button>
+</form>
+-->
+
+<form method="post" enctype="multipart/form-data" id="my-form">
+    {% csrf_token %}
+      <label for="file">Choose a file to upload:</label>
+    <input type="file" name="file" id="file" onchange="fileUploaded()">
+    <div id="dropdowns" style="display: none;">
+        <!-- Dropdown lists -->
+<select id="dropdown1" name="dropdown1" onchange="updateDropdown2()">
+    <option value="">Select an option...</option>
+    <option value="TB-01">TB-01</option>
+    <option value="GT...">GT...</option>
+</select>
+        <select id="dropdown2" name="dropdown2">
+        <option value="">Select an option...</option>
+</select>
+        <button id="submit" type="submit">Submit</button>
+    </div>
+</form>
+
+<select id="chartType">
+    <option value="line">Line Chart</option>
+    <option value="bar">Bar Chart</option>
+    <option value="pie">Pie Chart</option>
+  </select>
+
+<div class="chart-container">
+    <!-- The chart will be dynamically created and added here -->
+</div>
+
+<!-- JavaScript to handle dropdowns -->
+<script>
+$(function() {
+    $('#submit').click(function() {
+        $.ajax({
+            url: '{% url "gnss-home" %}',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                // Parse the JSON data
+                var message = data;
+                console.log(message)
+                // Use the data in your JavaScript code
+                $('#my-message').text(message);
+                //for (var i = 0; i < items.length; i++) {
+                  //  $('#my-items').append('<li>' + items[i] + '</li>');
+                //}
+            }
+        });
+    });
+});
+
+
+var data = {{ data|safe }};
+var i = 0;
+var chart = {}; // variable to store the chart object
+
+// get chart type dropdown element
+const chartSelect = document.getElementById('chartType');
+
+// Loop through the data and create a chart for each set of data
+for (var key in data) {
+  if (i == 0) {
+    var x_axis = key;
+    i = i + 1;
+  } else if (i == 1) {
+    var date_time = key;
+    i = i + 1;
+  } else {
+    var chartData = data[key];
+    var chartElement = document.createElement('canvas');
+    chartElement.id = 'chart-' + key;
+    chartElement.classList.add('chart');
+    document.querySelector('.chart-container').appendChild(chartElement);
+
+    var ctx = chartElement.getContext('2d');
+    let chartType = 'line';
+
+    chartSelect.addEventListener('change', () => {
+      chartType = chartSelect.value;
+      updateChart();
+    });
+
+    const updateChart = () => {
+      // destroy previous chart if it exists
+      if (chart[key]) {
+        chart[key].destroy();
+      }
+
+      chart[key] = new Chart(ctx, {
+        type: chartType,
+        data: {
+          labels: data[x_axis],
+          datasets: [{
+            label: key,
+            data: data[key],
+            borderColor: 'blue',
+            tension: 0.4
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          responsive: true,
+          plugins: {
+            tooltip: {
+              enabled: true,
+              yAlign: 'bottom',
+              displayColors: false,
+              callbacks: {
+                title: function(chart) {
+                  const titleDataIndex = chart[0].dataIndex;
+                  return `X axis data: ${titleDataIndex}`;
+                },
+                label: function(context) {
+                  const labelDataIndex = context.dataIndex;
+                  const label = context.dataset.label;
+                  const value = context.formattedValue;
+                  const time = data[date_time][labelDataIndex];
+                  return `${label}: ${value} at ${time}`;
+                }
+              }
+            }
+          },
+          hover: {
+            mode: 'nearest',
+            intersect: true
+          }
+        }
+      });
+    };
+    updateChart();
+  }
+}
+
+
+
+
+</script>
+
+</body>
+</html>
