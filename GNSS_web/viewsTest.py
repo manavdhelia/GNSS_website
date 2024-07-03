@@ -322,7 +322,7 @@ def chart(request):
                 }
 
             elif dropdown2_value == "GPGSV":
-                x=11;
+                x=12;
                 gpgsv_df = df.loc[df['column0'] == 'GPGSV', :]
                 if gpgsv_df.empty:
                     return JsonResponse({'data': None})
